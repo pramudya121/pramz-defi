@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Monad DeFi Platform</title>
+<style>
+  /* Transformer style animated background */
+  @keyframes transformer-glow {
+    0%, 100% {
+      filter: drop-shadow(0 0 4px #0ff) drop-shadow(0 0 12px #0ff);
+    }
+    50% {
+      filter: drop-shadow(0 0 10px #0ff) drop-shadow(0 0 20px #0ff);
+    }
+  }
+
+  body, html {
+    margin: 0; padding: 0; width: 100%; height: 100%; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: #0ff;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  }
+  #background {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+    background: repeating-linear-gradient(
+      45deg,
+      #0ff,
+      #0ff 1px,
+      transparent 2px,
+      transparent 20px
+    );
+    animation: transformer-glow 3s infinite ease-in-out alternate;
+    opacity: 0.35;
+  }
+  /* Container to fit within max width and height */
+  .container {
+    max-width: 350px;
+    max-height: 600px;
+    margin: 10px auto;
+    background: rgba(0, 0, 20, 0.8);
+    border-radius: 18px;
+    box-shadow: 0 0 25px #0ff;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  h1 {
+    font-weight: 900;
+    font-size: 1.8em;
+    text-align: center;
+    margin-bottom: 12px;
+    text-shadow: 0 0 11px #0ff, 0 0 22px #0ff;
+    letter-spacing: 1.5px;
+  }
+  section {
+    margin-bottom: 25px;
+    border: 1px solid #0ff;
+    border-radius: 14px;
+    padding: 15px;
+    background: rgba(0, 0, 20, 0.6);
+    box-shadow: 0 0 15px #0ff;
+  }
+  section h2 {
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    text-shadow: 0 0 8px #0ff;
+  }
+  label {
+    display: block;
+    margin: 8px 0 3px 0;
+    font-size: 0.9em;
+  }
+  select, input[type="text"], input[type="number"] {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #0ff;
+    background: #0a0a0a;
+    color: #0ff;
+    padding: 8px;
+    font-size: 0.9em;
+    box-sizing: border-box;
+  }
+  button {
+    background: #0ff;
+    border: none;
+    border-radius: 15px;
+    width: 100%;
+    padding: 10px 0;
+    margin-top: 15px;
+    font-weight: 700;
+    font-size: 1em;
+    color: #001010;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1.3px;
+    box-shadow: 0 0 10px #0ff;
+  }
+  button:hover:not(:disabled) {
+    background: #0cc;
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .wallet-connect {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .wallet-btn {
+    flex: 1;
+    background: #00bcd4;
+    color: #001010;
+    font-weight: 700;
+    box-shadow: 0 0 8px #00bcd4;
+  }
+  .wallet-btn:hover {
+    background: #0099a8;
+  }
+  .status {
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #0f0;
+    text-align: center;
+    min-height: 20px;
+  }
+</style>
+</head>
+<body>
+  <div id="background"></div>
+  <div class="container" aria-label="Monad DeFi Platform">
+
+    <h1>Monad DeFi Platform</h1>
+
+    <div class="wallet-connect" aria-label="Wallet Connections">
+      <button class="wallet-btn" id="btnMetaMask" type="button" aria-label="Connect MetaMask Wallet">MetaMask</button>
+      <button class="wallet-btn" id="btnBitget" type="button" aria-label="Connect Bitget Wallet">Bitget</button>
+      <button class="wallet-btn" id="btnOKX" type="button" aria-label="Connect OKX Wallet">OKX</button>
+      <button class="wallet-btn" id="btnHaha" type="button" aria-label="Connect Haha Wallet">Haha</button>
+    </div>
+    <div class="status" id="walletStatus" aria-live="polite"></div>
+
+    <section aria-labelledby="swapSectionTitle" id="swapSection">
+      <h2 id="swapSectionTitle">Swap Tokens</h2>
+      <label for="swapFrom">From:</label>
+      <select id="swapFrom" aria-required="true"></select>
+      <label for="swapTo">To:</label>
+      <select id="swapTo" aria-required="true"></select>
+      <label for="swapAmount">Amount:</label>
+      <input type="number" id="swapAmount" min="0" step="any" placeholder="Enter amount" aria-required="true"/>
+      <button id="swapBtn" type="button" disabled>Swap</button>
+      <div id="swapResult" class="status" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="stakeSectionTitle" id="stakeSection">
+      <h2 id="stakeSectionTitle">Stake Tokens</h2>
+      <label for="stakeToken">Token:</label>
+      <select id="stakeToken" aria-required="true"></select>
+      <label for="stakeAmount">Amount:</label>
+      <input type="number" id="stakeAmount" min="0" step="any" placeholder="Enter amount" aria-required="true"/>
+      <button id="stakeBtn" type="button" disabled>Stake</button>
+      <div id="stakeResult" class="status" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="unstakeSectionTitle" id="unstakeSection">
+      <h2 id="unstakeSectionTitle">Unstake Tokens</h2>
+      <label for="unstakeToken">Token:</label>
+      <select id="unstakeToken" aria-required="true"></select>
+      <label for="unstakeAmount">Amount:</label>
+      <input type="number" id="unstakeAmount" min="0" step="any" placeholder="Enter amount" aria-required="true"/>
+      <button id="unstakeBtn" type="button" disabled>Unstake</button>
+      <div id="unstakeResult" class="status" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="tradeSectionTitle" id="tradeSection">
+      <h2 id="tradeSectionTitle">Trade Tokens</h2>
+      <label for="tradeFrom">From:</label>
+      <select id="tradeFrom" aria-required="true"></select>
+      <label for="tradeTo">To:</label>
+      <select id="tradeTo" aria-required="true"></select>
+      <label for="tradeAmount">Amount:</label>
+      <input type="number" id="tradeAmount" min="0" step="any" placeholder="Enter amount" aria-required="true"/>
+      <button id="tradeBtn" type="button" disabled>Trade</button>
+      <div id="tradeResult" class="status" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="createTokenSectionTitle" id="createTokenSection">
+      <h2 id="createTokenSectionTitle">Create ERC20 Token</h2>
+      <label for="tokenName">Token Name:</label>
+      <input type="text" id="tokenName" placeholder="Enter token name" aria-required="true"/>
+      <label for="tokenSymbol">Token Symbol:</label>
+      <input type="text" id="tokenSymbol" placeholder="Enter token symbol" aria-required="true" maxlength="5"/>
+      <label for="tokenSupply">Initial Supply:</label>
+      <input type="number" id="tokenSupply" min="1" step="1" placeholder="Total supply" aria-required="true"/>
+      <button id="createTokenBtn" type="button" disabled>Create Token</button>
+      <div id="createTokenResult" class="status" aria-live="polite"></div>
+    </section>
+  </div>
+
+<script>
+  // Tokens available on Monad network
+  const tokens = ['MON', 'WMON', 'ETH', 'WBTC', 'WSOLANA', 'WETH', 'WWETH', 'BEAN', 'DAK', 'CHOG'];
+
+  // Populate selects with token options
+  function fillTokenSelects() {
+    const selects = document.querySelectorAll('select');
+    selects.forEach(select => {
+      select.innerHTML = '';
+      tokens.forEach(token => {
+        const option = document.createElement('option');
+        option.value = token;
+        option.text = token;
+        select.appendChild(option);
+      });
+    });
+  }
+
+  fillTokenSelects();
+
+  // Wallet connection simulation and status
+  const walletStatus = document.getElementById('walletStatus');
+  let connectedWallet = null;
+
+  async function connectMetaMask() {
+    if (!window.ethereum) {
+      alert('MetaMask is not installed!');
+      return;
+    }
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      connectedWallet = {name: 'MetaMask', account: accounts[0]};
+      walletStatus.textContent = `Connected: ${connectedWallet.name} (${connectedWallet.account.slice(0,6)}...${connectedWallet.account.slice(-4)})`;
+      enableActionButtons();
+    } catch (err) {
+      walletStatus.textContent = 'MetaMask connection failed';
+    }
+  }
+
+  function connectGenericWallet(name) {
+    // This is a mock connection for other wallets
+    connectedWallet = {name: name, account: '0x1234...abcd'};
+    walletStatus.textContent = `Connected: ${connectedWallet.name} (${connectedWallet.account})`;
+    enableActionButtons();
+  }
+
+  document.getElementById('btnMetaMask').addEventListener('click', connectMetaMask);
+  document.getElementById('btnBitget').addEventListener('click', () => connectGenericWallet('Bitget'));
+  document.getElementById('btnOKX').addEventListener('click', () => connectGenericWallet('OKX'));
+  document.getElementById('btnHaha').addEventListener('click', () => connectGenericWallet('Haha'));
+
+  // Enable buttons only if wallet connected and amount/input not empty
+  function enableActionButtons() {
+    ['swapBtn', 'stakeBtn', 'unstakeBtn', 'tradeBtn', 'createTokenBtn'].forEach(id => {
+      document.getElementById(id).disabled = false;
+    });
+  }
+
+  // Simple utility to validate inputs for actions
+  function validateNumberInput(value) {
+    return value && !isNaN(value) && Number(value) > 0;
+  }
+
+  // Update button disable states based on inputs
+  function updateButtonState(btnId, inputs) {
+    const btn = document.getElementById(btnId);
+    let enabled = connectedWallet !== null;
+    for (const val of inputs) {
+      if (!val || val.trim() === '' || (btnId !== 'createTokenBtn' && !validateNumberInput(val))) {
+        enabled = false;
+        break;
+      }
+    }
+    btn.disabled = !enabled;
+  }
+
+  // Swap functionality (mock)
+  const swapFrom = document.getElementById('swapFrom');
+  const swapTo = document.getElementById('swapTo');
+  const swapAmount = document.getElementById('swapAmount');
+  const swapBtn = document.getElementById('swapBtn');
+  const swapResult = document.getElementById('swapResult');
+
+  function swapInputsChanged() {
+    updateButtonState('swapBtn', [swapFrom.value, swapTo.value, swapAmount.value]);
+  }
+  swapFrom.addEventListener('change', swapInputsChanged);
+  swapTo.addEventListener('change', swapInputsChanged);
+  swapAmount.addEventListener('input', swapInputsChanged);
+
+  swapBtn.addEventListener('click', () => {
+    if(swapFrom.value === swapTo.value) {
+      swapResult.textContent = "Cannot swap the same token.";
+      return;
+    }
+    swapResult.textContent = `Swapping ${swapAmount.value} ${swapFrom.value} to ${swapTo.value}... (mock)`;
+    setTimeout(() => {
+      swapResult.textContent = `Swap complete: ${swapAmount.value} ${swapFrom.value} swapped to ${swapTo.value}`;
+    }, 2000);
+  });
+
+  // Stake functionality (mock)
+  const stakeToken = document.getElementById('stakeToken');
+  const stakeAmount = document.getElementById('stakeAmount');
+  const stakeBtn = document.getElementById('stakeBtn');
+  const stakeResult = document.getElementById('stakeResult');
+
+  function stakeInputsChanged() {
+    updateButtonState('stakeBtn', [stakeToken.value, stakeAmount.value]);
+  }
+  stakeToken.addEventListener('change', stakeInputsChanged);
+  stakeAmount.addEventListener('input', stakeInputsChanged);
+
+  stakeBtn.addEventListener('click', () => {
+    stakeResult.textContent = `Staking ${stakeAmount.value} ${stakeToken.value}... (mock)`;
+    setTimeout(() => {
+      stakeResult.textContent = `Stake complete: ${stakeAmount.value} ${stakeToken.value}`;
+    }, 1500);
+  });
+
+  // Unstake functionality (mock)
+  const unstakeToken = document.getElementById('unstakeToken');
+  const unstakeAmount = document.getElementById('unstakeAmount');
+  const unstakeBtn = document.getElementById('unstakeBtn');
+  const unstakeResult = document.getElementById('unstakeResult');
+
+  function unstakeInputsChanged() {
+    updateButtonState('unstakeBtn', [unstakeToken.value, unstakeAmount.value]);
+  }
+  unstakeToken.addEventListener('change', unstakeInputsChanged);
+  unstakeAmount.addEventListener('input', unstakeInputsChanged);
+
+  unstakeBtn.addEventListener('click', () => {
+    unstakeResult.textContent = `Unstaking ${unstakeAmount.value} ${unstakeToken.value}... (mock)`;
+    setTimeout(() => {
+      unstakeResult.textContent = `Unstake complete: ${unstakeAmount.value} ${unstakeToken.value}`;
+    }, 1500);
+  });
+
+  // Trade functionality (mock)
+  const tradeFrom = document.getElementById('tradeFrom');
+  const tradeTo = document.getElementById('tradeTo');
+  const tradeAmount = document.getElementById('tradeAmount');
+  const tradeBtn = document.getElementById('tradeBtn');
+  const tradeResult = document.getElementById('tradeResult');
+
+  function tradeInputsChanged() {
+    updateButtonState('tradeBtn', [tradeFrom.value, tradeTo.value, tradeAmount.value]);
+  }
+  tradeFrom.addEventListener('change', tradeInputsChanged);
+  tradeTo.addEventListener('change', tradeInputsChanged);
+  tradeAmount.addEventListener('input', tradeInputsChanged);
+
+  tradeBtn.addEventListener('click', () => {
+    if(tradeFrom.value === tradeTo.value) {
+      tradeResult.textContent = "Cannot trade the same token.";
+      return;
+    }
+    tradeResult.textContent = `Trading ${tradeAmount.value} ${tradeFrom.value} for ${tradeTo.value}... (mock)`;
+    setTimeout(() => {
+      tradeResult.textContent = `Trade complete: ${tradeAmount.value} ${tradeFrom.value} traded for ${tradeTo.value}`;
+    }, 2000);
+  });
+
+  // Create ERC20 token functionality (mock)
+  const tokenName = document.getElementById('tokenName');
+  const tokenSymbol = document.getElementById('tokenSymbol');
+  const tokenSupply = document.getElementById('tokenSupply');
+  const createTokenBtn = document.getElementById('createTokenBtn');
+  const createTokenResult = document.getElementById('createTokenResult');
+
+  function createTokenInputsChanged() {
+    updateButtonState('createTokenBtn', [tokenName.value, tokenSymbol.value, tokenSupply.value]);
+  }
+  tokenName.addEventListener('input', createTokenInputsChanged);
+  tokenSymbol.addEventListener('input', createTokenInputsChanged);
+  tokenSupply.addEventListener('input', createTokenInputsChanged);
+
+  createTokenBtn.addEventListener('click', () => {
+    createTokenResult.textContent = `Creating token ${tokenName.value} (${tokenSymbol.value}) with supply ${tokenSupply.value}... (mock)`;
+    setTimeout(() => {
+      createTokenResult.textContent = `Token ${tokenName.value} (${tokenSymbol.value}) created successfully!`;
+      // Reset inputs
+      tokenName.value = '';
+      tokenSymbol.value = '';
+      tokenSupply.value = '';
+      createTokenBtn.disabled = true;
+    }, 2500);
+  });
+
+</script>
+</body>
+</html>
+
